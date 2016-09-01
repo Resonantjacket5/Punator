@@ -69,11 +69,15 @@ Punator.prototype.fetchBigHugeLabs = (word)=>{
   });
 };
 
+// TODO: Future should generalize this so other thesauruses
+// can be called and easily subsistute Api's
+
 Punator.prototype.fetchBigHugeLabsSynonyms = (word)=>{
   return request('GET','https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/'+word+'/json').then((val)=>{
     console.log(val.target.response);
     if(val.target.response==""){
-      console.log("empty");
+      console.error("empty");
+      console.error(word);
       return null;
     }
     var jsonObj = JSON.parse(val.target.response);
@@ -115,12 +119,19 @@ Punator.prototype.submitKeyAndSentence = function(e){
   // stop the page from refreshing!!!
   e.preventDefault();
   console.log("submitKeyAndSentence");
-  //this.submitSentence();
-  var keyPromise = this.submitKeyword();
+
+  var keyWord = this.getKeyword();
+  var keyPromise = this.fetchBigHugeLabsSynonyms(keyWord)
+  .then((syns)=>{
+    syns.push(keyWord);
+    return syns;
+  });
+
   var sentencePromises = this.sentenceSynonyms();
+
+  // Wait for all promises to finish
   Promise.all([keyPromise,sentencePromises]).then((val)=>{
     //var newSentence = this.compareAll(val[0],val[1]);
-    console.log(this);
     var newSentence = this.createPun(val[0],val[1]);//.bind(this);
     console.log(newSentence);
     newSentence = newSentence.join(" ");
@@ -175,6 +186,18 @@ Punator.prototype.getSentence = function (e){
 // }
 
 
+Punator.prototype.getKeyword = function (e){
+  //e.preventDefault();
+  if(this.keywordInput.value){
+    var word = this.keywordInput.value;
+    return word;
+  }
+  else {
+    console.log("failed");
+  }
+};
+
+// Old version of fetching keyWord
 Punator.prototype.submitKeyword = function (e){
   //e.preventDefault();
   if(this.keywordInput.value /*&& this.checkSignedInWithMessage()*/){
@@ -193,8 +216,6 @@ Punator.prototype.submitKeyword = function (e){
     console.log("failed");
   }
 };
-
-//Punator.prototype.fetchKeywordSynonyms
 
 
 // Returns a matrix of two vectors of words
@@ -261,7 +282,8 @@ Punator.prototype.createPun = function(keySynonyms, listOfSentenceSynonyms){
   for(let i=0; i<sentenceLength; i+=1)
   {
     var currentWordSynonyms = listOfSentenceSynonyms[i];
-    console.log(this);
+
+
     var matrix = this.productWords(keySynonyms,currentWordSynonyms);
     var minItem = this.minMatrix(matrix);
     console.log(minItem);
