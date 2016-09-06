@@ -72,6 +72,8 @@ class Punator {
     keyPromise and the sentencePromises
     then work on the comparing the two of them.
 
+    Activated when the user clicks or presses enter
+
   */
 
 

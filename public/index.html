@@ -60,30 +60,38 @@
   <body>
     <!-- 29017c6048fadaa546444cb9b1088e33 -->
     <div id="message">
-      <h1>Welcome to Firebase Hosting</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <ul>
+      <h1>Welcome to Punator</h1>
+      <!-- <ul>
         <li><a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a></li>
-      </ul>
-      <p>
-        dog changed ?
-      </p>
-    </div>
-    <form id="keywordForm">
-      Sentence: <input type='text' id='sentence'/>
-      Keyword: <input type='text' id='keyword'/>
-      <button id="submit" type="submit">
-        Find
-      </button>
-      <!-- <a href="submitKeyword()">Find</a> -->
-    </form>
+      </ul> -->
 
-    <p id='keywordSynonyms'>
-      Nothing here yet....
-    </p>
-    <p id="awesomebighugelab">
-      Thesaurus service provided by words.bighugelabs.com
-    </p>
+      <p>
+        Transforms your sentence with the "keyword" to rhyme with.
+        It'll look up nearby synonyms of the "keyword" and try to
+        replace the sentence's words if any are close.
+      </p>
+
+      <form id="keywordForm">
+        Sentence: <input type='text' id='sentence'/>
+      </br>
+        Keyword: <input type='text' id='keyword'/>
+        <button id="submit" type="submit">
+          Find
+        </button>
+        <!-- <a href="submitKeyword()">Find</a> -->
+      </form>
+
+      <p id='keywordSynonyms'>
+        Nothing here yet....
+      </p>
+      <p id="awesomebighugelab">
+        Thesaurus service provided by words.bighugelabs.com
+      </p>
+
+    </div>
+
+
+
     <!-- <script id="main" src="scripts/main.js"></script> -->
     <script src="scripts/bundle.js"></script>
   </body>
