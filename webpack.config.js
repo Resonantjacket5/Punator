@@ -20,7 +20,8 @@ module.exports = {
   node: {
     fs:"empty"
   },
-  plugins:[
-    new webpack.IgnorePlugin(new RegExp("/(node_modules|nodemailer)/"))
-  ]
+  // plugins:[
+  //   new webpack.IgnorePlugin(new RegExp("/(node_modules|nodemailer)/"))
+  // ],
+  watch:"true"
 }

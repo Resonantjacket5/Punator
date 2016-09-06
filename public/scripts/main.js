@@ -6,6 +6,7 @@ class Punator {
         this.keywordInput = document.getElementById('keyword');
         this.sentenceInput = document.getElementById('sentence');
         this.keywordSynonyms = document.getElementById('keywordSynonyms');
+        console.log(Metaphone.process("train"));
         this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
     }
     ;
@@ -40,8 +41,27 @@ class Punator {
         });
         var sentencePromises = this.sentenceSynonyms();
         Promise.all([keyPromise, sentencePromises]).then((val) => {
-            var newSentenceArr = this.createPun(val[0], val[1]);
-            var newSentence = newSentenceArr.join(" ");
+            let punInfo = this.createPun(val[0], val[1]);
+            let rhymedSentenceArr = punInfo[0];
+            let sentenceRatios = punInfo[1];
+            let newSentence = "Error not loaded";
+            let newSentenceArr = [];
+            let oldSentenceArr = this.getSentence().split(" ");
+            if (rhymedSentenceArr.length !== oldSentenceArr.length) {
+                console.error(rhymedSentenceArr, "Rhymed Sentence");
+                console.error(oldSentenceArr, "Old Sentence");
+                throw new Error("Sentence array correct size!");
+            }
+            for (let index = 0; index < oldSentenceArr.length; index++) {
+                let difference = sentenceRatios[index];
+                if (difference <= 2) {
+                    newSentenceArr.push(rhymedSentenceArr[index]);
+                }
+                else {
+                    newSentenceArr.push(oldSentenceArr[index]);
+                }
+            }
+            newSentence = newSentenceArr.join(" ");
             this.keywordSynonyms.textContent = newSentence;
         });
     }
@@ -75,33 +95,37 @@ class Punator {
         }
     }
     createPun(keySynonyms, listOfSentenceSynonyms) {
-        var sentenceLength = listOfSentenceSynonyms.length;
-        var newSentence = [];
+        let output;
+        let sentenceLength = listOfSentenceSynonyms.length;
+        let newSentence = [];
+        let sentenceRatios = [];
         for (let i = 0; i < sentenceLength; i += 1) {
-            var currentWordSynonyms = listOfSentenceSynonyms[i];
-            var matrix = this.productWords(keySynonyms, currentWordSynonyms);
-            var minItem = this.minMatrix(matrix);
+            let currentWordSynonyms = listOfSentenceSynonyms[i];
+            let matrix = this.productWords(keySynonyms, currentWordSynonyms);
+            let minItem = this.minMatrix(matrix);
             console.log(minItem);
-            var minRatio = minItem.ratio;
+            let minRatio = minItem.ratio;
             console.log(keySynonyms);
             console.log(keySynonyms[minItem.minLocation.row]);
-            var minKey = keySynonyms[minItem.minLocation.row];
-            var minWordSynonym = currentWordSynonyms[minItem.minLocation.col];
+            let minKey = keySynonyms[minItem.minLocation.row];
+            let minWordSynonym = currentWordSynonyms[minItem.minLocation.col];
             newSentence.push(minKey);
+            sentenceRatios.push(minRatio);
         }
-        return newSentence;
+        return [newSentence, sentenceRatios];
     }
     productWords(list1, list2) {
         var matrix = [];
         for (let i = 0; i < list1.length; i += 1) {
             var row = [];
             for (let j = 0; j < list2.length; j += 1) {
-                var ratio = this.rawCompare(list1[i], list2[j]);
+                var ratio = this.metaphoneCompare(list1[i], list2[j]);
                 console.log(list1[i] + " " + list2[j] + " " + ratio);
                 row.push(ratio);
             }
             matrix.push(row);
         }
+        console.info(matrix);
         return matrix;
     }
     minMatrix(matrix) {
@@ -120,6 +144,11 @@ class Punator {
             }
         }
         return { ratio: minRatio, minLocation };
+    }
+    metaphoneCompare(word1, word2) {
+        let code1 = Metaphone.process(word1);
+        let code2 = Metaphone.process(word2);
+        return getEditDistance(code1, code2);
     }
     rawCompare(word1, word2) {
         var editDistance = getEditDistance(word1, word2);

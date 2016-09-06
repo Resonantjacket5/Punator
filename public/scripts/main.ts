@@ -1,14 +1,14 @@
 /*jshint globalstrict: true*/
 /*jslint browser:true */
 'use strict';
-//import System from "systemjs";
-//import {Metaphone} from "natural";
-//var Metaphone = require("./../../node_modules/natural/lib/natural/phonetics/metaphone.js")
+
+// regular import from natural doesn't work
+// because log4js (node) doens't work on browser
+// and no idea how to remove dependency
+//import * as natural from "natural";
+
 var Metaphone = require("natural/lib/natural/phonetics/metaphone.js")
-//var requirejs = require('requirejs');
-//import natural = require("./../../node_modules/natural/index.js");
-//import hi = require("hi");
-//import hi from "./hi.js";
+
 
 
 
@@ -23,10 +23,14 @@ class Punator {
     //   console.log(natural);
     // });
 
+    console.log(Metaphone.process("train"));
+
     this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
     //this.checkSetup();
     //this.initFirebase();
   }
+
+  //https://www.npmjs.com/package/callthesaurus maybe use this?
 
   fetchBigHugeLabsSynonyms (word):Promise<Array<string>>{
     return request('GET','https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/'+word+'/json').then((val:any)=>{
@@ -88,8 +92,44 @@ class Punator {
     // Wait for all promises to finish
     Promise.all([keyPromise,sentencePromises]).then((val)=>{
       //var newSentence = this.compareAll(val[0],val[1]);
-      var newSentenceArr:Array<string> = this.createPun(val[0],val[1]);//.bind(this);
-      var newSentence:string = newSentenceArr.join(" ");
+      let punInfo = this.createPun(val[0],val[1]);//.bind(this);
+      let rhymedSentenceArr:Array<string> = punInfo[0];
+      let sentenceRatios:Array<number> = punInfo[1];
+
+
+      // simple string join
+      let newSentence:string = "Error not loaded"; //= newSentenceArr.join(" ");
+      let newSentenceArr:string[] = [];
+
+      // TODO: more effecient calling of the sentence
+      let oldSentenceArr:string[] = this.getSentence().split(" ");
+
+      if(rhymedSentenceArr.length !== oldSentenceArr.length)
+      {
+        console.error(rhymedSentenceArr,"Rhymed Sentence");
+        console.error(oldSentenceArr, "Old Sentence");
+        throw new Error("Sentence array correct size!");
+      }
+
+      // TODO: refactor processing of deciding pun to be
+      // handled by createPun
+      for(let index=0; index<oldSentenceArr.length; index++)
+      {
+        let difference:number = sentenceRatios[index];
+        if (difference<=2)
+        {
+          // if difference is small
+          // the push the synonym pun
+          newSentenceArr.push(rhymedSentenceArr[index]);
+        }
+        else
+        {
+          // if difference is large
+          // continue to use the old word
+          newSentenceArr.push(oldSentenceArr[index]);
+        }
+      }
+      newSentence = newSentenceArr.join(" ");
       this.keywordSynonyms.textContent = newSentence;
     });
   }
@@ -120,8 +160,9 @@ class Punator {
     return Promise.all(arrSenSynPromises);
   }
 
+
   // Fetches the sentence inputted
-  getSentence():string{
+  getSentence():string {
     if(this.sentenceInput.value){
       console.log(this.sentenceInput.value);
       var sentence = this.sentenceInput.value;
@@ -162,25 +203,31 @@ class Punator {
         []
       ]
   */
-  createPun (keySynonyms:Array<string>, listOfSentenceSynonyms:Array<Array<string>>){
-    var sentenceLength = listOfSentenceSynonyms.length;
-    var newSentence = []
+  createPun (
+    keySynonyms:Array<string>,
+    listOfSentenceSynonyms:Array<Array<string>>)
+    :[Array<string>,Array<number>]
+    {
+    let output :[Array<string>,Array<number>];
+    let sentenceLength:number = listOfSentenceSynonyms.length;
+    let newSentence:Array<string> = []
+    let sentenceRatios:Array<number> =[]
     for(let i=0; i<sentenceLength; i+=1)
     {
-      var currentWordSynonyms = listOfSentenceSynonyms[i];
+      let currentWordSynonyms:Array<string> = listOfSentenceSynonyms[i];
 
-
-      var matrix = this.productWords(keySynonyms,currentWordSynonyms);
-      var minItem = this.minMatrix(matrix);
+      let matrix = this.productWords(keySynonyms,currentWordSynonyms);
+      let minItem = this.minMatrix(matrix);
       console.log(minItem);
-      var minRatio = minItem.ratio;
+      let minRatio:number = minItem.ratio;
       console.log(keySynonyms);
       console.log(keySynonyms[minItem.minLocation.row]);
-      var minKey:string = keySynonyms[minItem.minLocation.row];
-      var minWordSynonym = currentWordSynonyms[minItem.minLocation.col];
+      let minKey:string = keySynonyms[minItem.minLocation.row];
+      let minWordSynonym:string = currentWordSynonyms[minItem.minLocation.col];
       newSentence.push(minKey);
+      sentenceRatios.push(minRatio);
     }
-    return newSentence;
+    return [newSentence,sentenceRatios];
   }
 
 
@@ -198,14 +245,16 @@ class Punator {
       var row=[];
       for(let j=0;j<list2.length;j+=1)
       {
-        var ratio = this.rawCompare(list1[i],list2[j]);
+        var ratio:number = this.metaphoneCompare(list1[i],list2[j]);//this.rawCompare(list1[i],list2[j]);
         console.log(list1[i]+" "+list2[j]+" "+ratio);
         row.push(ratio);
       }
       matrix.push(row);
     }
+    console.info(matrix);
     return matrix;
   }
+
 
   // row typically correspondes to key synonym
   // could probably do this with apply and fancy array stuff
@@ -233,9 +282,13 @@ class Punator {
 
 
 
+  metaphoneCompare(word1:string,word2:string):number {
+    let code1:string = Metaphone.process(word1);
+    let code2:string = Metaphone.process(word2);
+    return getEditDistance(code1,code2);
+  }
 
-
-  rawCompare (word1, word2) {
+  rawCompare (word1:string, word2:string):number {
     var editDistance = getEditDistance(word1,word2);
     var larger = Math.max(word1.length,word2.length);
     var ratio = editDistance/larger;
