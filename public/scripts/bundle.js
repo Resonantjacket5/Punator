@@ -45,6 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
+	const thesaurus_1 = __webpack_require__(10);
 	var Metaphone = __webpack_require__(1);
 	class Punator {
 	    constructor() {
@@ -53,11 +54,14 @@
 	        this.sentenceInput = document.getElementById('sentence');
 	        this.keywordSynonyms = document.getElementById('keywordSynonyms');
 	        console.log(Metaphone.process("train"));
+	        this.thesaurus = new thesaurus_1.BigHugeLabsThesaurus("29017c6048fadaa546444cb9b1088e33");
 	        this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
 	    }
 	    ;
 	    fetchBigHugeLabsSynonyms(word) {
+	        throw new Error("deprecated");
 	        return request('GET', 'https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/' + word + '/json').then((val) => {
+	            console.log(val);
 	            console.log(val.target.response);
 	            if (val.target.response == "") {
 	                console.error("empty");
@@ -80,7 +84,7 @@
 	        e.preventDefault();
 	        console.log("submitKeyAndSentence");
 	        var keyWord = this.getKeyword();
-	        var keyPromise = this.fetchBigHugeLabsSynonyms(keyWord)
+	        var keyPromise = this.thesaurus.getSynonyms(keyWord)
 	            .then((syns) => {
 	            syns.push(keyWord);
 	            return syns;
@@ -116,7 +120,7 @@
 	        var s = rawSentence.split(" ");
 	        var arrSenSynPromises = [];
 	        for (let i = 0; i < s.length; i += 1) {
-	            arrSenSynPromises.push(this.fetchBigHugeLabsSynonyms(s[i]));
+	            arrSenSynPromises.push(this.thesaurus.getSynonyms(s[i]));
 	        }
 	        return Promise.all(arrSenSynPromises);
 	    }
@@ -1464,6 +1468,66 @@
 	    ctor.prototype.constructor = ctor
 	  }
 	}
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	"use strict";
+	class BigHugeLabsThesaurus {
+	    constructor(api_key) {
+	        this.obj = {
+	            found: false,
+	            type: []
+	        };
+	        this.api_key = "none";
+	        this.website = "https://words.bighugelabs.com/api/2/";
+	        this.api_key = api_key;
+	        if (!api_key) {
+	            throw new Error("No API key passed!");
+	        }
+	        else {
+	            this.website += api_key + '/';
+	        }
+	    }
+	    getSynonyms(word) {
+	        return this.getWordInfo(word).then((wordInfo) => {
+	            return wordInfo.noun.syn;
+	        });
+	    }
+	    getWordInfo(word) {
+	        return Network.request('GET', this.website + word + '/json')
+	            .then((val) => {
+	            let status = val.target.status;
+	            if (status === 200 || status === 303) {
+	                console.log(val.target.response);
+	                if (val.target.response == "") {
+	                    console.error("empty");
+	                }
+	                let jsonObj = JSON.parse(val.target.response);
+	                return jsonObj;
+	            }
+	            else {
+	                this.obj.found = false;
+	            }
+	        });
+	    }
+	}
+	exports.BigHugeLabsThesaurus = BigHugeLabsThesaurus;
+	var Network;
+	(function (Network) {
+	    function request(method, url) {
+	        return new Promise(function (resolve, reject) {
+	            var xhr = new XMLHttpRequest();
+	            xhr.open(method, url);
+	            xhr.onload = resolve;
+	            xhr.onerror = reject;
+	            xhr.send();
+	        });
+	    }
+	    Network.request = request;
+	})(Network || (Network = {}));
 
 
 /***/ }

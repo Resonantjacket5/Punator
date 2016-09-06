@@ -6,17 +6,22 @@
 // because log4js (node) doens't work on browser
 // and no idea how to remove dependency
 //import * as natural from "natural";
+import {BigHugeLabsThesaurus,Thesaurus} from "./thesaurus";
+//import Metaphone from "natural/lib/natural/phonetics/metaphone.js";
+var Metaphone:any = require("natural/lib/natural/phonetics/metaphone.js");
 
-var Metaphone = require("natural/lib/natural/phonetics/metaphone.js")
-
-
-
+declare var require: {
+    <T>(path: string): T;
+    (paths: string[], callback: (...modules: any[]) => void): void;
+    ensure: (paths: string[], callback: (require: <T>(path: string) => T) => void) => void;
+};
 
 class Punator {
   keywordForm:HTMLElement= document.getElementById('keywordForm');;
   keywordInput:HTMLInputElement=<HTMLInputElement> document.getElementById('keyword');
   sentenceInput:HTMLInputElement = <HTMLInputElement>document.getElementById('sentence');
   keywordSynonyms:HTMLElement = document.getElementById('keywordSynonyms');
+  thesaurus:Thesaurus;
     constructor(){
     //console.log(Metaphone);
     // require('natural',(natural)=>{
@@ -24,7 +29,7 @@ class Punator {
     // });
 
     console.log(Metaphone.process("train"));
-
+    this.thesaurus = new BigHugeLabsThesaurus("29017c6048fadaa546444cb9b1088e33");
     this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
     //this.checkSetup();
     //this.initFirebase();
@@ -32,8 +37,13 @@ class Punator {
 
   //https://www.npmjs.com/package/callthesaurus maybe use this?
 
+
+
+
   fetchBigHugeLabsSynonyms (word):Promise<Array<string>>{
+    throw new Error("deprecated");
     return request('GET','https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/'+word+'/json').then((val:any)=>{
+      console.log(val);
       console.log(val.target.response);
       if(val.target.response==""){
         console.error("empty");
@@ -83,7 +93,7 @@ class Punator {
     console.log("submitKeyAndSentence");
 
     var keyWord:string = this.getKeyword();
-    var keyPromise:Promise<any> = this.fetchBigHugeLabsSynonyms(keyWord)
+    var keyPromise:Promise<any> = this.thesaurus.getSynonyms(keyWord)
     .then((syns)=>{
       syns.push(keyWord);
       return syns;
@@ -151,7 +161,9 @@ class Punator {
 
     for(let i =0; i<s.length;i+=1)
     {
-      arrSenSynPromises.push(this.fetchBigHugeLabsSynonyms(s[i]));
+      //arrSenSynPromises.push(this.fetchBigHugeLabsSynonyms(s[i]));
+
+      arrSenSynPromises.push(this.thesaurus.getSynonyms(s[i]));
       // this.fetchBigHugeLabsSynonyms(s[i]).then((syn)=>{
       //   console.log(syn);
       //   synonyms.push(syn);

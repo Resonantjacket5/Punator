@@ -1,4 +1,5 @@
 'use strict';
+const thesaurus_1 = require("./thesaurus");
 var Metaphone = require("natural/lib/natural/phonetics/metaphone.js");
 class Punator {
     constructor() {
@@ -7,11 +8,14 @@ class Punator {
         this.sentenceInput = document.getElementById('sentence');
         this.keywordSynonyms = document.getElementById('keywordSynonyms');
         console.log(Metaphone.process("train"));
+        this.thesaurus = new thesaurus_1.BigHugeLabsThesaurus("29017c6048fadaa546444cb9b1088e33");
         this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
     }
     ;
     fetchBigHugeLabsSynonyms(word) {
+        throw new Error("deprecated");
         return request('GET', 'https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/' + word + '/json').then((val) => {
+            console.log(val);
             console.log(val.target.response);
             if (val.target.response == "") {
                 console.error("empty");
@@ -34,7 +38,7 @@ class Punator {
         e.preventDefault();
         console.log("submitKeyAndSentence");
         var keyWord = this.getKeyword();
-        var keyPromise = this.fetchBigHugeLabsSynonyms(keyWord)
+        var keyPromise = this.thesaurus.getSynonyms(keyWord)
             .then((syns) => {
             syns.push(keyWord);
             return syns;
@@ -70,7 +74,7 @@ class Punator {
         var s = rawSentence.split(" ");
         var arrSenSynPromises = [];
         for (let i = 0; i < s.length; i += 1) {
-            arrSenSynPromises.push(this.fetchBigHugeLabsSynonyms(s[i]));
+            arrSenSynPromises.push(this.thesaurus.getSynonyms(s[i]));
         }
         return Promise.all(arrSenSynPromises);
     }
