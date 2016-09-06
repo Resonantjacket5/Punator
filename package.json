@@ -1,0 +1,23 @@
+{
+  "name": "punator",
+  "version": "1.0.0",
+  "description": "Create puns!",
+  "main": "index.js",
+  "dependencies": {
+    "@types/natural": "^0.2.30",
+    "@types/systemjs": "^0.19.30",
+    "natural": "^0.4.0",
+    "ts-loader": "^0.8.2",
+    "typings": "^1.3.3",
+    "wordnet-db": "^3.1.2"
+  },
+  "devDependencies": {
+    "requirejs": "^2.3.1",
+    "webpack": "^1.13.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Wesley Lin",
+  "license": "ISC"
+}
