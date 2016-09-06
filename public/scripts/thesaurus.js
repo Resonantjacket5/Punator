@@ -17,7 +17,13 @@ class BigHugeLabsThesaurus {
     }
     getSynonyms(word) {
         return this.getWordInfo(word).then((wordInfo) => {
-            return wordInfo.noun.syn;
+            let syn = [];
+            for (let type in wordInfo) {
+                if (wordInfo[type].syn !== undefined) {
+                    syn = syn.concat(wordInfo[type].syn);
+                }
+            }
+            return syn;
         });
     }
     getWordInfo(word) {

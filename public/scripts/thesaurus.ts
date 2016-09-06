@@ -23,7 +23,16 @@ export class BigHugeLabsThesaurus implements Thesaurus{
 
   public getSynonyms(word:string):Promise<string[]>{
     return this.getWordInfo(word).then((wordInfo:any)=>{
-      return wordInfo.noun.syn;
+      let syn=[];
+      for(let type in wordInfo)
+      {
+        // if synonyms exist for the type (noun/verb/etc)
+        if(wordInfo[type].syn!==undefined)
+        {
+          syn = syn.concat(wordInfo[type].syn);
+        }
+      }
+      return syn;
     });
   }
 

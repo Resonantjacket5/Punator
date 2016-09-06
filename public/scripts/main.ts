@@ -35,48 +35,6 @@ class Punator {
     //this.initFirebase();
   }
 
-  //https://www.npmjs.com/package/callthesaurus maybe use this?
-
-
-
-
-  fetchBigHugeLabsSynonyms (word):Promise<Array<string>>{
-    throw new Error("deprecated");
-    return request('GET','https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/'+word+'/json').then((val:any)=>{
-      console.log(val);
-      console.log(val.target.response);
-      if(val.target.response==""){
-        console.error("empty");
-        console.error(word);
-        return null;
-      }
-      var jsonObj = JSON.parse(val.target.response);
-      // console.log(jsonObj);
-      // console.log(jsonObj.noun);
-      console.log(jsonObj.noun.syn);
-      return jsonObj.noun.syn;
-    });
-    // .then((e)=>{
-    //   // handle errors
-    //   console.error(e);
-    // });
-  }
-
-  fetchBigHugeLabsSpecific(word,type){
-    request('GET','https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/'+word+'/json').then((val:any)=>{
-      console.log(val.target.response);
-      return val.target.response.noun[type];
-    }).then((e)=>{
-      // handle errors
-    });
-  }
-
-  // Punator.prototype.nearbyWord = (word1,word2)=>{
-  //   for(let i=0;i<word1.length;i+=1){
-  //
-  //   }
-  // }
-
   /*
     Handle fetching both the
     keyPromise and the sentencePromises
@@ -183,7 +141,7 @@ class Punator {
       return sentence;
     }
     else {
-      console.log("sentence failed");
+      console.log("sentence failed or empty");
       // TODO: throw error if sentence not found
       throw new Error("sentence not found");
     }
@@ -336,16 +294,6 @@ class Punator {
 //         'Make sure you go through the codelab setup instructions.');
 //   }
 // };
-
-function request(method, url) {
-    return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.open(method, url);
-        xhr.onload = resolve;
-        xhr.onerror = reject;
-        xhr.send();
-    });
-}
 
 function getEditDistance(a, b) {
   // credit to:

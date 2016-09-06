@@ -12,28 +12,6 @@ class Punator {
         this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
     }
     ;
-    fetchBigHugeLabsSynonyms(word) {
-        throw new Error("deprecated");
-        return request('GET', 'https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/' + word + '/json').then((val) => {
-            console.log(val);
-            console.log(val.target.response);
-            if (val.target.response == "") {
-                console.error("empty");
-                console.error(word);
-                return null;
-            }
-            var jsonObj = JSON.parse(val.target.response);
-            console.log(jsonObj.noun.syn);
-            return jsonObj.noun.syn;
-        });
-    }
-    fetchBigHugeLabsSpecific(word, type) {
-        request('GET', 'https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/' + word + '/json').then((val) => {
-            console.log(val.target.response);
-            return val.target.response.noun[type];
-        }).then((e) => {
-        });
-    }
     submitKeyAndSentence(e) {
         e.preventDefault();
         console.log("submitKeyAndSentence");
@@ -85,7 +63,7 @@ class Punator {
             return sentence;
         }
         else {
-            console.log("sentence failed");
+            console.log("sentence failed or empty");
             throw new Error("sentence not found");
         }
     }
@@ -160,15 +138,6 @@ class Punator {
         var ratio = editDistance / larger;
         return ratio;
     }
-}
-function request(method, url) {
-    return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.open(method, url);
-        xhr.onload = resolve;
-        xhr.onerror = reject;
-        xhr.send();
-    });
 }
 function getEditDistance(a, b) {
     if (a.length === 0) {
