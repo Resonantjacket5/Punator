@@ -9,6 +9,7 @@
 import {BigHugeLabsThesaurus,Thesaurus} from "./thesaurus";
 //import Metaphone from "natural/lib/natural/phonetics/metaphone.js";
 var Metaphone:any = require("natural/lib/natural/phonetics/metaphone.js");
+//var Moby:any = require("moby");
 
 declare var require: {
     <T>(path: string): T;
@@ -27,6 +28,9 @@ class Punator {
     // require('natural',(natural)=>{
     //   console.log(natural);
     // });
+    // console.log(Moby.search("dog"));
+    // console.log(Moby.search("snake"));
+    // console.log(Moby.search("mad"));
 
     console.log(Metaphone.process("train"));
     this.thesaurus = new BigHugeLabsThesaurus("29017c6048fadaa546444cb9b1088e33");

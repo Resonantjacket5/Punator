@@ -39,3 +39,9 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
+
+firebase-debug.log
+
+# bundled file
+public/scripts/bundle.js
+
