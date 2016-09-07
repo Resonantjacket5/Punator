@@ -17,11 +17,6 @@ module.exports = {
       { test: /\.tsx?$/, loader: 'ts-loader' }
     ]
   },
-  node: {
-    fs:"empty"
-  },
-  // plugins:[
-  //   new webpack.IgnorePlugin(new RegExp("/(node_modules|nodemailer)/"))
-  // ],
-  watch:"true"
+  //target:'node',
+  //watch:"true"
 }

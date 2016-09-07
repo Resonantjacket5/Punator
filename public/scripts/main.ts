@@ -24,14 +24,14 @@ class Punator {
   keywordSynonyms:HTMLElement = document.getElementById('keywordSynonyms');
   thesaurus:Thesaurus;
     constructor(){
-    console.log(Metaphone);
+    // /console.log(Metaphone);
     // require('natural',(natural)=>{
     //   console.log(natural);
     // });
     // console.log(Moby.search("dog"));
     // console.log(Moby.search("snake"));
     // console.log(Moby.search("mad"));
-
+    //console.log("HI");
     console.log(Metaphone.process("train"));
     this.thesaurus = new BigHugeLabsThesaurus("29017c6048fadaa546444cb9b1088e33");
     this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
