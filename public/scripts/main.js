@@ -7,6 +7,7 @@ class Punator {
         this.keywordInput = document.getElementById('keyword');
         this.sentenceInput = document.getElementById('sentence');
         this.keywordSynonyms = document.getElementById('keywordSynonyms');
+        console.log(Metaphone);
         console.log(Metaphone.process("train"));
         this.thesaurus = new thesaurus_1.BigHugeLabsThesaurus("29017c6048fadaa546444cb9b1088e33");
         this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));

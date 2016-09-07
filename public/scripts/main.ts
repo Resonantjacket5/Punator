@@ -24,7 +24,7 @@ class Punator {
   keywordSynonyms:HTMLElement = document.getElementById('keywordSynonyms');
   thesaurus:Thesaurus;
     constructor(){
-    //console.log(Metaphone);
+    console.log(Metaphone);
     // require('natural',(natural)=>{
     //   console.log(natural);
     // });
