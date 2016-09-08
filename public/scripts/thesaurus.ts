@@ -37,7 +37,7 @@ export class BigHugeLabsThesaurus implements Thesaurus{
   }
 
 
-  getWordInfo(word:string):Promise<string>{
+  public getWordInfo(word:string):Promise<string>{
     return Network.request('GET',this.website+word+'/json')
     .then((val:any)=>{
 

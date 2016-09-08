@@ -24,20 +24,20 @@ class Punator {
   keywordSynonyms:HTMLElement = document.getElementById('keywordSynonyms');
   thesaurus:Thesaurus;
 
+  keyword:string;
+  sentence:string;
+
 
   constructor()
   {
-    // /console.log(Metaphone);
-    // require('natural',(natural)=>{
-    //   console.log(natural);
-    // });
-    // console.log(Moby.search("dog"));
-    // console.log(Moby.search("snake"));
-    // console.log(Moby.search("mad"));
-    //console.log("HI");
+
     console.log(Metaphone.process("train"));
+
+
+    // Use this thesaurus for fetching synonyms and pass in the API key listed below
     this.thesaurus = new BigHugeLabsThesaurus("29017c6048fadaa546444cb9b1088e33");
     this.keywordForm.addEventListener('submit', this.submitKeyAndSentence.bind(this));
+
     //this.checkSetup();
     //this.initFirebase();
   }
@@ -52,7 +52,7 @@ class Punator {
   */
 
 
-  submitKeyAndSentence(e){
+  submitKeyAndSentence(e):void  {
     // stop the page from refreshing!!!
     e.preventDefault();
     console.log("submitKeyAndSentence");
@@ -74,7 +74,7 @@ class Punator {
       //let punInfo = this.createPun(val[0],s);
 
       //normal one
-      let punInfo = this.createPun(val[0],val[1]);
+      let punInfo = this.compareKeySynonymsAndSentence(val[0],val[1]);
       let rhymedSentenceArr:Array<string> = punInfo[0];
       let sentenceRatios:Array<number> = punInfo[1];
 
@@ -83,14 +83,16 @@ class Punator {
       let newSentence:string = "Error not loaded"; //= newSentenceArr.join(" ");
       let newSentenceArr:string[] = [];
 
-      // TODO: more effecient calling of the sentence
+
+
+
       let oldSentenceArr:string[] = this.getSentence().split(" ");
 
       if(rhymedSentenceArr.length !== oldSentenceArr.length)
       {
         console.error(rhymedSentenceArr,"Rhymed Sentence");
         console.error(oldSentenceArr, "Old Sentence");
-        throw new Error("Sentence array correct size!");
+        throw new Error("Sentence array incorrect size!");
       }
 
       // TODO: refactor processing of deciding pun to be
@@ -112,9 +114,17 @@ class Punator {
         }
       }
       newSentence = newSentenceArr.join(" ");
+
+      // Output new sentence
       this.keywordSynonyms.textContent = newSentence;
     });
     return null;
+  }
+
+
+
+  createPun():string {
+    return "thing";
   }
 
   // Finds all synonyms of the sentences
@@ -127,21 +137,11 @@ class Punator {
     var rawSentence:string = this.getSentence();
     var s:Array<string> = rawSentence.split(" ");
     // TODO: error checking that s exists
-    //var synonyms = [];
     var arrSenSynPromises:Array<Promise<Array<string>>> = [];
-
     for(let i =0; i<s.length;i+=1)
     {
-      //arrSenSynPromises.push(this.fetchBigHugeLabsSynonyms(s[i]));
-
       arrSenSynPromises.push(this.thesaurus.getSynonyms(s[i]));
-      // this.fetchBigHugeLabsSynonyms(s[i]).then((syn)=>{
-      //   console.log(syn);
-      //   synonyms.push(syn);
-      //   console.log(synonyms);
-      // });
     }
-
     return Promise.all(arrSenSynPromises);
   }
 
@@ -151,6 +151,7 @@ class Punator {
     if(this.sentenceInput.value){
       console.log(this.sentenceInput.value);
       var sentence = this.sentenceInput.value;
+      this.sentence = sentence;
       return sentence;
     }
     else {
@@ -172,6 +173,7 @@ class Punator {
     //e.preventDefault();
     if(this.keywordInput.value){
       var word = this.keywordInput.value;
+      this.keyword = word;
       return word;
     }
     else {
@@ -188,25 +190,25 @@ class Punator {
         []
       ]
   */
-  createPun (
+  compareKeySynonymsAndSentence (
     keySynonyms:Array<string>,
     listOfSentenceSynonyms:Array<Array<string>>)
     :[Array<string>,Array<number>]
-    {
+  {
     let output :[Array<string>,Array<number>];
     let sentenceLength:number = listOfSentenceSynonyms.length;
     let newSentence:Array<string> = []
     let sentenceRatios:Array<number> =[]
-    for(let i=0; i<sentenceLength; i+=1)
+    for(let i=0; i<sentenceLength; i++)
     {
       let currentWordSynonyms:Array<string> = listOfSentenceSynonyms[i];
 
-      let matrix = this.productWords(keySynonyms,currentWordSynonyms);
+      let matrix = this.productWords(keySynonyms,currentWordSynonyms,this.metaphoneCompare);
       let minItem = this.minMatrix(matrix);
-      console.log(minItem);
+      //console.log(minItem);
       let minRatio:number = minItem.ratio;
-      console.log(keySynonyms);
-      console.log(keySynonyms[minItem.minLocation.row]);
+      //console.log(keySynonyms);
+      //console.log(keySynonyms[minItem.minLocation.row]);
       let minKey:string = keySynonyms[minItem.minLocation.row];
       let minWordSynonym:string = currentWordSynonyms[minItem.minLocation.col];
       newSentence.push(minKey);
@@ -217,25 +219,29 @@ class Punator {
 
 
 
-  // interface {
-  //
-  // }
+
 
   // Returns a matrix of two vectors of words
   // with the score of their raw scores
+  // Depending on function passed in
   /*        list2  a   b   c
     list1 1         .   .   .
           2         .   .   .
           3         .   .   .
   */
-  productWords (list1:Array<string>, list2:Array<string>,compareFunction:Function=null):Array<Array<number>>{
+  productWords (
+    list1:Array<string>,
+    list2:Array<string>,
+    compareFunction:TwoWordCompare)
+    :Array<Array<number>>
+  {
     var matrix:Array<Array<number>> = [];
     for(let i=0; i<list1.length;i+=1)
     {
       var row:Array<number>=[];
       for(let j=0;j<list2.length;j+=1)
       {
-        var ratio:number = this.metaphoneCompare(list1[i],list2[j]);//this.rawCompare(list1[i],list2[j]);
+        var ratio:number = compareFunction(list1[i],list2[j]);//this.rawCompare(list1[i],list2[j]);
         console.log(list1[i]+" "+list2[j]+" "+ratio);
         row.push(ratio);
       }
@@ -286,7 +292,9 @@ class Punator {
   }
 }
 
-
+interface TwoWordCompare {
+  (a:string, b:string): number;
+}
 
 // Punator.prototype.fetchBigHugeLabs = function (word){
 //   request('GET','https://words.bighugelabs.com/api/2/29017c6048fadaa546444cb9b1088e33/'+word+'/json').then((val)=>{
