@@ -23,7 +23,10 @@ class Punator {
   sentenceInput:HTMLInputElement = <HTMLInputElement>document.getElementById('sentence');
   keywordSynonyms:HTMLElement = document.getElementById('keywordSynonyms');
   thesaurus:Thesaurus;
-    constructor(){
+
+
+  constructor()
+  {
     // /console.log(Metaphone);
     // require('natural',(natural)=>{
     //   console.log(natural);
@@ -66,7 +69,12 @@ class Punator {
     // Wait for all promises to finish
     Promise.all([keyPromise,sentencePromises]).then((val)=>{
       //var newSentence = this.compareAll(val[0],val[1]);
-      let punInfo = this.createPun(val[0],val[1]);//.bind(this);
+
+      //let s = this.getSentence().split(" ");
+      //let punInfo = this.createPun(val[0],s);
+
+      //normal one
+      let punInfo = this.createPun(val[0],val[1]);
       let rhymedSentenceArr:Array<string> = punInfo[0];
       let sentenceRatios:Array<number> = punInfo[1];
 
@@ -90,7 +98,7 @@ class Punator {
       for(let index=0; index<oldSentenceArr.length; index++)
       {
         let difference:number = sentenceRatios[index];
-        if (difference<=2)
+        if (difference<=1)
         {
           // if difference is small
           // the push the synonym pun
@@ -106,6 +114,7 @@ class Punator {
       newSentence = newSentenceArr.join(" ");
       this.keywordSynonyms.textContent = newSentence;
     });
+    return null;
   }
 
   // Finds all synonyms of the sentences
@@ -159,7 +168,7 @@ class Punator {
   // }
 
 
-  getKeyword ():string{
+  getKeyword ():string {
     //e.preventDefault();
     if(this.keywordInput.value){
       var word = this.keywordInput.value;
@@ -207,6 +216,11 @@ class Punator {
   }
 
 
+
+  // interface {
+  //
+  // }
+
   // Returns a matrix of two vectors of words
   // with the score of their raw scores
   /*        list2  a   b   c
@@ -214,11 +228,11 @@ class Punator {
           2         .   .   .
           3         .   .   .
   */
-  productWords (list1:Array<string>, list2:Array<string>){
-    var matrix = [];
+  productWords (list1:Array<string>, list2:Array<string>,compareFunction:Function=null):Array<Array<number>>{
+    var matrix:Array<Array<number>> = [];
     for(let i=0; i<list1.length;i+=1)
     {
-      var row=[];
+      var row:Array<number>=[];
       for(let j=0;j<list2.length;j+=1)
       {
         var ratio:number = this.metaphoneCompare(list1[i],list2[j]);//this.rawCompare(list1[i],list2[j]);

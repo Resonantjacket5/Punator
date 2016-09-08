@@ -36,7 +36,7 @@ class Punator {
             }
             for (let index = 0; index < oldSentenceArr.length; index++) {
                 let difference = sentenceRatios[index];
-                if (difference <= 2) {
+                if (difference <= 1) {
                     newSentenceArr.push(rhymedSentenceArr[index]);
                 }
                 else {
@@ -46,6 +46,7 @@ class Punator {
             newSentence = newSentenceArr.join(" ");
             this.keywordSynonyms.textContent = newSentence;
         });
+        return null;
     }
     sentenceSynonyms() {
         var rawSentence = this.getSentence();
@@ -96,7 +97,7 @@ class Punator {
         }
         return [newSentence, sentenceRatios];
     }
-    productWords(list1, list2) {
+    productWords(list1, list2, compareFunction = null) {
         var matrix = [];
         for (let i = 0; i < list1.length; i += 1) {
             var row = [];
