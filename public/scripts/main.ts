@@ -57,74 +57,76 @@ class Punator {
     e.preventDefault();
     console.log("submitKeyAndSentence");
 
-    var keyWord:string = this.getKeyword();
-    var keyPromise:Promise<any> = this.thesaurus.getSynonyms(keyWord)
-    .then((syns)=>{
-      syns.push(keyWord);
-      return syns;
-    });
-
-    var sentencePromises:Promise<any> = this.sentenceSynonyms();
-
-    // Wait for all promises to finish
-    Promise.all([keyPromise,sentencePromises]).then((val)=>{
-      //var newSentence = this.compareAll(val[0],val[1]);
-
-      //let s = this.getSentence().split(" ");
-      //let punInfo = this.createPun(val[0],s);
-
-      //normal one
-      let punInfo = this.compareKeySynonymsAndSentence(val[0],val[1]);
-      let rhymedSentenceArr:Array<string> = punInfo[0];
-      let sentenceRatios:Array<number> = punInfo[1];
-
-
-      // simple string join
-      let newSentence:string = "Error not loaded"; //= newSentenceArr.join(" ");
-      let newSentenceArr:string[] = [];
-
-
-
-
-      let oldSentenceArr:string[] = this.getSentence().split(" ");
-
-      if(rhymedSentenceArr.length !== oldSentenceArr.length)
-      {
-        console.error(rhymedSentenceArr,"Rhymed Sentence");
-        console.error(oldSentenceArr, "Old Sentence");
-        throw new Error("Sentence array incorrect size!");
-      }
-
-      // TODO: refactor processing of deciding pun to be
-      // handled by createPun
-      for(let index=0; index<oldSentenceArr.length; index++)
-      {
-        let difference:number = sentenceRatios[index];
-        if (difference<=1)
-        {
-          // if difference is small
-          // the push the synonym pun
-          newSentenceArr.push(rhymedSentenceArr[index]);
-        }
-        else
-        {
-          // if difference is large
-          // continue to use the old word
-          newSentenceArr.push(oldSentenceArr[index]);
-        }
-      }
-      newSentence = newSentenceArr.join(" ");
-
-      // Output new sentence
-      this.keywordSynonyms.textContent = newSentence;
-    });
+    let keyWord:string = this.getKeyword();
+    let sentence:string = this.getSentence();
+    this.managePun(keyWord,sentence);
     return null;
   }
 
+  managePun(keyword:string,rawSentence:string)
+  {
+    let keyPromise:Promise<string[]> = this.thesaurus.getSynonyms(keyword)
+    .then((syns)=>{
+      syns.push(keyword); // include self
+      return syns;
+    });
+    let sentencePromises:Promise<string[][]> = this.sentenceSynonyms(rawSentence);
+
+    // Wait for all promises to finish
+    Promise.all([keyPromise,sentencePromises]).then((val)=>{
+      this.createPun(val);
+    });
+  }
+
+  createPun(val:[Array<string>,Array<Array<string>>]) {
+    //var newSentence = this.compareAll(val[0],val[1]);
+
+    //let s = this.getSentence().split(" ");
+    //let punInfo = this.createPun(val[0],s);
+
+    //normal one
+    let punInfo = this.compareKeySynonymsAndSentence(val[0],val[1]);
+    let rhymedSentenceArr:Array<string> = punInfo[0];
+    let sentenceRatios:Array<number> = punInfo[1];
 
 
-  createPun():string {
-    return "thing";
+    // simple string join
+    let newSentence:string = "Error not loaded"; //= newSentenceArr.join(" ");
+    let newSentenceArr:string[] = [];
+
+
+
+
+    let oldSentenceArr:string[] = this.getSentence().split(" ");
+
+    if(rhymedSentenceArr.length !== oldSentenceArr.length)
+    {
+      console.error(rhymedSentenceArr,"Rhymed Sentence");
+      console.error(oldSentenceArr, "Old Sentence");
+      throw new Error("Sentence array incorrect size!");
+    }
+
+    // TODO: refactor processing of deciding pun to be
+    // handled by createPun
+    for(let index = 0; index < oldSentenceArr.length; index++)
+    {
+      let difference:number = sentenceRatios[index];
+      if ( difference <= 1)
+      {
+        // if difference is small the push the synonym pun
+        newSentenceArr.push(rhymedSentenceArr[index]);
+      }
+      else
+      {
+        // if difference is large
+        // continue to use the old word
+        newSentenceArr.push(oldSentenceArr[index]);
+      }
+    }
+    newSentence = newSentenceArr.join(" ");
+
+    // Output new sentence
+    this.keywordSynonyms.textContent = newSentence;
   }
 
   // Finds all synonyms of the sentences
@@ -133,12 +135,21 @@ class Punator {
   // Punator.prototype.splitSentence = function (sentence){
   //   return sentence.split(" ");
   // }
-  sentenceSynonyms():Promise<any[]> {
-    var rawSentence:string = this.getSentence();
+  sentenceSynonyms(rawSentence2:string=null):Promise<Array<Array<string>>> {
+
+    let rawSentence:string = "";
+    if(rawSentence2 !== null)
+    {
+      rawSentence = rawSentence2;
+    }
+    else
+    {
+      rawSentence = this.getSentence();
+    }
     var s:Array<string> = rawSentence.split(" ");
     // TODO: error checking that s exists
     var arrSenSynPromises:Array<Promise<Array<string>>> = [];
-    for(let i =0; i<s.length;i+=1)
+    for(let i =0; i <s.length;i+=1)
     {
       arrSenSynPromises.push(this.thesaurus.getSynonyms(s[i]));
     }
@@ -199,7 +210,7 @@ class Punator {
     let sentenceLength:number = listOfSentenceSynonyms.length;
     let newSentence:Array<string> = []
     let sentenceRatios:Array<number> =[]
-    for(let i=0; i<sentenceLength; i++)
+    for(let i=0; i <sentenceLength; i++)
     {
       let currentWordSynonyms:Array<string> = listOfSentenceSynonyms[i];
 
@@ -236,10 +247,10 @@ class Punator {
     :Array<Array<number>>
   {
     var matrix:Array<Array<number>> = [];
-    for(let i=0; i<list1.length;i+=1)
+    for(let i=0; i <list1.length;i+=1)
     {
       var row:Array<number>=[];
-      for(let j=0;j<list2.length;j+=1)
+      for(let j=0;j <list2.length;j+=1)
       {
         var ratio:number = compareFunction(list1[i],list2[j]);//this.rawCompare(list1[i],list2[j]);
         console.log(list1[i]+" "+list2[j]+" "+ratio);
@@ -260,13 +271,13 @@ class Punator {
     var numCols:number = matrix[0].length;
     var minRatio = 999;
     var minLocation = {row:null,col:null};
-    for(let i=0; i<numRows;i+=1)
+    for(let i = 0; i < numRows; i++)
     {
-      for(let j=0;j<numCols;j+=1)
+      for(let j = 0; j < numCols; j++)
       {
         // get ratio at row i and col j
         var ratio = matrix[i][j];
-        if(ratio<minRatio)
+        if( ratio < minRatio)
         {
           minRatio = ratio;
           minLocation = {row:i,col:j};

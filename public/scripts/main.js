@@ -15,44 +15,54 @@ class Punator {
     submitKeyAndSentence(e) {
         e.preventDefault();
         console.log("submitKeyAndSentence");
-        var keyWord = this.getKeyword();
-        var keyPromise = this.thesaurus.getSynonyms(keyWord)
-            .then((syns) => {
-            syns.push(keyWord);
-            return syns;
-        });
-        var sentencePromises = this.sentenceSynonyms();
-        Promise.all([keyPromise, sentencePromises]).then((val) => {
-            let punInfo = this.compareKeySynonymsAndSentence(val[0], val[1]);
-            let rhymedSentenceArr = punInfo[0];
-            let sentenceRatios = punInfo[1];
-            let newSentence = "Error not loaded";
-            let newSentenceArr = [];
-            let oldSentenceArr = this.getSentence().split(" ");
-            if (rhymedSentenceArr.length !== oldSentenceArr.length) {
-                console.error(rhymedSentenceArr, "Rhymed Sentence");
-                console.error(oldSentenceArr, "Old Sentence");
-                throw new Error("Sentence array incorrect size!");
-            }
-            for (let index = 0; index < oldSentenceArr.length; index++) {
-                let difference = sentenceRatios[index];
-                if (difference <= 1) {
-                    newSentenceArr.push(rhymedSentenceArr[index]);
-                }
-                else {
-                    newSentenceArr.push(oldSentenceArr[index]);
-                }
-            }
-            newSentence = newSentenceArr.join(" ");
-            this.keywordSynonyms.textContent = newSentence;
-        });
+        let keyWord = this.getKeyword();
+        let sentence = this.getSentence();
+        this.managePun(keyWord, sentence);
         return null;
     }
-    createPun() {
-        return "thing";
+    managePun(keyword, rawSentence) {
+        let keyPromise = this.thesaurus.getSynonyms(keyword)
+            .then((syns) => {
+            syns.push(keyword);
+            return syns;
+        });
+        let sentencePromises = this.sentenceSynonyms(rawSentence);
+        Promise.all([keyPromise, sentencePromises]).then((val) => {
+            this.createPun(val);
+        });
     }
-    sentenceSynonyms() {
-        var rawSentence = this.getSentence();
+    createPun(val) {
+        let punInfo = this.compareKeySynonymsAndSentence(val[0], val[1]);
+        let rhymedSentenceArr = punInfo[0];
+        let sentenceRatios = punInfo[1];
+        let newSentence = "Error not loaded";
+        let newSentenceArr = [];
+        let oldSentenceArr = this.getSentence().split(" ");
+        if (rhymedSentenceArr.length !== oldSentenceArr.length) {
+            console.error(rhymedSentenceArr, "Rhymed Sentence");
+            console.error(oldSentenceArr, "Old Sentence");
+            throw new Error("Sentence array incorrect size!");
+        }
+        for (let index = 0; index < oldSentenceArr.length; index++) {
+            let difference = sentenceRatios[index];
+            if (difference <= 1) {
+                newSentenceArr.push(rhymedSentenceArr[index]);
+            }
+            else {
+                newSentenceArr.push(oldSentenceArr[index]);
+            }
+        }
+        newSentence = newSentenceArr.join(" ");
+        this.keywordSynonyms.textContent = newSentence;
+    }
+    sentenceSynonyms(rawSentence2 = null) {
+        let rawSentence = "";
+        if (rawSentence2 !== null) {
+            rawSentence = rawSentence2;
+        }
+        else {
+            rawSentence = this.getSentence();
+        }
         var s = rawSentence.split(" ");
         var arrSenSynPromises = [];
         for (let i = 0; i < s.length; i += 1) {
@@ -119,8 +129,8 @@ class Punator {
         var numCols = matrix[0].length;
         var minRatio = 999;
         var minLocation = { row: null, col: null };
-        for (let i = 0; i < numRows; i += 1) {
-            for (let j = 0; j < numCols; j += 1) {
+        for (let i = 0; i < numRows; i++) {
+            for (let j = 0; j < numCols; j++) {
                 var ratio = matrix[i][j];
                 if (ratio < minRatio) {
                     minRatio = ratio;
